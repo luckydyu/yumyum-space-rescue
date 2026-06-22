@@ -8,7 +8,8 @@
       maxGameTime: 1200,
       score: 0,
       isMuted: false,
-      phase: 'spoon', // spoon, chew, chopstick, scan
+      phase: 'spoon', // spoon, side, soup, chew, scan
+      currentMealStep: 'rice', // rice, side, soup, single
       phaseTimer: 15,
       chewProgress: 0,
       scanningStatus: 'ready', // ready, scanning, success
@@ -23,6 +24,46 @@
     let faceLandmarkerPromise = null;
     let mouthOpenStartedAt = null;
     let lastMouthDetectionAt = 0;
+
+    const fullMealSequence = ['rice', 'side', 'soup'];
+    const mealStepDetails = {
+      rice: {
+        phase: 'spoon',
+        title: '밥 한 숟가락!',
+        badge: '밥 에너지',
+        image: 'assets/images/spoon-meal.png',
+        alt: '밥을 숟가락으로 뜨는 그림',
+        color: 'cyan',
+        body: '먼저 <strong>밥</strong>을 한 숟가락 크게 떠서<br />입에 쏙 넣어주세요!'
+      },
+      side: {
+        phase: 'side',
+        title: '반찬 집기!',
+        badge: '반찬 에너지',
+        image: 'assets/images/spoon-meal.png',
+        alt: '반찬을 먹는 그림',
+        color: 'indigo',
+        body: '이번엔 <strong>반찬</strong> 차례예요.<br />맛있는 반찬을 골라 입에 넣어주세요!'
+      },
+      soup: {
+        phase: 'soup',
+        title: '국 한 입!',
+        badge: '국 에너지',
+        image: 'assets/images/spoon-meal.png',
+        alt: '국을 먹는 그림',
+        color: 'sky',
+        body: '마지막으로 <strong>국</strong>을 한 입 먹어요.<br />따뜻한 국 에너지까지 채우면 한 바퀴 완료!'
+      },
+      single: {
+        phase: 'spoon',
+        title: '한 입 에너지!',
+        badge: '단일 에너지',
+        image: 'assets/images/spoon-meal.png',
+        alt: '음식을 한 입 뜨는 그림',
+        color: 'cyan',
+        body: '지금은 <strong>한 그릇 에너지</strong>를<br />한 입 크게 떠서 입에 넣는 시간!'
+      }
+    };
 
     const MOUTH_OPEN_HOLD_MS = 1200;
     const MOUTH_DETECTION_INTERVAL_MS = 160;
@@ -286,7 +327,7 @@
         updateMouthCheckStatus(`좋아요! 그대로 ${progress}%`, 'ok');
 
         if (heldMs >= MOUTH_OPEN_HOLD_MS) {
-          completeScanSuccess({ nextPhase: 'spoon' });
+          completeScanSuccess({ nextPhase: getNextMealPhase() });
         }
       };
 
@@ -412,6 +453,7 @@
       state.maxGameTime = totalDuration;
       state.score = 0;
       state.phase = 'spoon';
+      state.currentMealStep = state.menuType === 'full' ? 'rice' : 'single';
       state.phaseTimer = 15;
       state.chewProgress = 0;
       state.scanningStatus = 'ready';
@@ -455,9 +497,7 @@
 
     const handlePhaseTimeOut = () => {
       playSound('success');
-      if (state.phase === 'spoon') {
-        goToNextPhase('chew');
-      } else if (state.phase === 'chopstick') {
+      if (state.phase === 'spoon' || state.phase === 'side' || state.phase === 'soup') {
         goToNextPhase('chew');
       } else if (state.phase === 'chew') {
         goToNextPhase('scan');
@@ -476,8 +516,13 @@
       
       if (nextPhase === 'spoon') {
         state.phaseTimer = 15;
-      } else if (nextPhase === 'chopstick') {
+        state.currentMealStep = state.menuType === 'full' ? 'rice' : 'single';
+      } else if (nextPhase === 'side') {
         state.phaseTimer = 15;
+        state.currentMealStep = 'side';
+      } else if (nextPhase === 'soup') {
+        state.phaseTimer = 15;
+        state.currentMealStep = 'soup';
       } else if (nextPhase === 'chew') {
         state.phaseTimer = 25;
         state.chewProgress = 0;
@@ -498,20 +543,34 @@
       updateScoreDisplay();
       animatePointGain(100);
 
-      if (state.phase === 'spoon') {
-        goToNextPhase('chew');
-      } else if (state.phase === 'chopstick') {
+      if (state.phase === 'spoon' || state.phase === 'side' || state.phase === 'soup') {
         goToNextPhase('chew');
       } else if (state.phase === 'chew') {
         goToNextPhase('scan');
       } else if (state.phase === 'scan') {
-        goToNextPhase(state.menuType === 'full' ? 'spoon' : 'spoon');
+        goToNextPhase(getNextMealPhase());
       }
     };
 
     const handleStartScanning = () => {
       if (state.phase !== 'scan' || state.scanningStatus === 'success') return;
-      completeScanSuccess({ nextPhase: 'spoon' });
+      completeScanSuccess({ nextPhase: getNextMealPhase() });
+    };
+
+    const getNextMealStep = (step) => {
+      if (state.menuType !== 'full') return 'single';
+      const currentIndex = fullMealSequence.indexOf(step);
+      return fullMealSequence[(currentIndex + 1) % fullMealSequence.length];
+    };
+
+    const getMealStepForPhase = (phase) => {
+      if (state.menuType !== 'full') return mealStepDetails.single;
+      return Object.values(mealStepDetails).find(detail => detail.phase === phase) || mealStepDetails.rice;
+    };
+
+    const getNextMealPhase = () => {
+      const nextStep = getNextMealStep(state.currentMealStep);
+      return mealStepDetails[nextStep].phase;
     };
 
     const renderPhaseImage = (src, alt) => `
@@ -540,6 +599,43 @@
       </div>
     `;
 
+    const renderMealStepper = () => {
+      if (state.menuType !== 'full') return '';
+      return `
+        <div class="flex justify-center gap-2 mb-3">
+          ${fullMealSequence.map(step => {
+            const isActive = state.currentMealStep === step;
+            const label = step === 'rice' ? '밥' : step === 'side' ? '반찬' : '국';
+            return `
+              <span class="${isActive ? 'bg-cyan-400 text-slate-950' : 'bg-slate-800 text-slate-400'} px-3 py-1 rounded-full text-xs font-black border ${isActive ? 'border-white' : 'border-slate-700'}">
+                ${label}
+              </span>
+            `;
+          }).join('')}
+        </div>
+      `;
+    };
+
+    const getMealColorClass = (color) => {
+      if (color === 'indigo') return 'text-indigo-300';
+      if (color === 'sky') return 'text-sky-300';
+      return 'text-cyan-300';
+    };
+
+    const renderMealPrompt = (detail) => `
+      <div class="mb-4 animate-pulse">
+        ${renderPhaseImage(detail.image, detail.alt)}
+      </div>
+      ${renderMealStepper()}
+      <span class="inline-flex items-center px-3 py-1 rounded-full bg-slate-800 border border-slate-700 ${getMealColorClass(detail.color)} text-xs font-black mb-2">
+        ${detail.badge}
+      </span>
+      <h3 class="text-3xl font-black ${getMealColorClass(detail.color)} mb-2">${detail.title}</h3>
+      <p class="text-slate-300 text-base leading-relaxed">
+        ${detail.body}
+      </p>
+    `;
+
     // --- Dynamic Phase Rendering ---
     const renderPhaseUI = () => {
       const guide = document.getElementById('guide-content');
@@ -554,29 +650,10 @@
       btnScan.classList.add('hidden');
       scanHint.classList.remove('hidden');
 
-      if (state.phase === 'spoon') {
+      if (state.phase === 'spoon' || state.phase === 'side' || state.phase === 'soup') {
+        const mealStep = getMealStepForPhase(state.phase);
         guide.innerHTML = `
-          <div class="mb-4 animate-pulse">
-            ${renderPhaseImage('assets/images/spoon-meal.png', '밥을 숟가락으로 뜨는 그림')}
-          </div>
-          <h3 class="text-3xl font-black text-cyan-300 mb-2">숟가락 합체!</h3>
-          <p class="text-slate-300 text-base leading-relaxed">
-            지금은 <strong>맛있는 밥과 국</strong>을 <br />
-            한 숟가락 크게 떠서 입에 쏙 채우는 시간!
-          </p>
-        `;
-      } else if (state.phase === 'chopstick') {
-        guide.innerHTML = `
-          <div class="w-28 h-28 bg-indigo-500/10 rounded-full flex items-center justify-center border-4 border-indigo-400 animate-pulse mb-4">
-            <svg class="w-16 h-16 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 3l14 18M10 3l10 14" />
-            </svg>
-          </div>
-          <h3 class="text-3xl font-black text-indigo-300 mb-2">젓가락 레이더 발사!</h3>
-          <p class="text-slate-300 text-base leading-relaxed">
-            이번엔 맛있는 <strong>우주 반찬</strong>을 집으세요! <br />
-            골고루 영양소를 흡수해야 부스터가 켜집니다!
-          </p>
+          ${renderMealPrompt(mealStep)}
         `;
       } else if (state.phase === 'chew') {
         const percent = (state.chewProgress / 30) * 100;
