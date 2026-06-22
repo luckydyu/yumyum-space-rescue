@@ -43,9 +43,9 @@
   <div id="point-animation-layer" class="fixed inset-0 pointer-events-none z-[100] overflow-hidden"></div>
 
   <!-- ================= SCREEN: INTRO ================= -->
-  <div id="screen-intro" class="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-lg mx-auto w-full">
-    <div class="relative mb-8 mt-4 animate-bounce">
-      <svg class="w-32 h-32 text-indigo-400 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <div id="screen-intro" class="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-2xl mx-auto w-full">
+    <div class="relative mb-5 mt-4 animate-bounce">
+      <svg class="w-28 h-28 text-indigo-400 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
       </svg>
       <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-5xl">🌌</div>
@@ -58,7 +58,7 @@
       Yum-Yum Space Rescue
     </p>
 
-    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 mb-8 text-left w-full shadow-xl">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-5 text-left w-full shadow-xl">
       <h2 class="text-lg font-bold text-cyan-300 mb-3 flex items-center">
         <span class="mr-2">🚀</span> <span class="pilot-name-text">연우</span> 대원님, 오늘의 임무!
       </h2>
@@ -68,25 +68,16 @@
       </p>
     </div>
 
-    <button onclick="changeScreen('setup')" class="w-full bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-black py-4 px-8 rounded-2xl text-xl shadow-lg shadow-indigo-500/20 active:scale-95 transition-transform">
-      임무 준비하기 ➔
-    </button>
-  </div>
-
-  <!-- ================= SCREEN: SETUP ================= -->
-  <div id="screen-setup" class="hidden flex-1 flex flex-col justify-center p-6 max-w-md mx-auto w-full">
-    <h2 class="text-3xl font-black text-center text-cyan-400 mb-8">🛠️ 비행 준비 세팅</h2>
-    
-    <div class="space-y-6 bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl">
+    <div class="space-y-5 bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl w-full">
       <!-- 대원 이름 입력 -->
       <div>
-        <label class="block text-slate-400 text-xs font-bold uppercase mb-2">우주 대원 이름</label>
+        <label class="block text-slate-400 text-xs font-bold uppercase mb-2 text-left">우주 대원 이름</label>
         <input type="text" id="input-pilot-name" value="연우" maxLength="8" class="w-full bg-slate-800 border-2 border-indigo-500/30 rounded-xl px-4 py-3 text-lg font-bold text-white focus:outline-none focus:border-indigo-500" />
       </div>
 
       <!-- 메뉴 타입 선택 -->
       <div>
-        <label class="block text-slate-400 text-xs font-bold uppercase mb-2">식사 타입 (에너지 종류)</label>
+        <label class="block text-slate-400 text-xs font-bold uppercase mb-2 text-left">식사 타입 (에너지 종류)</label>
         <div class="grid grid-cols-2 gap-3">
           <button type="button" id="btn-menu-full" onclick="setMenuType('full')" class="p-4 rounded-xl border-2 flex flex-col items-center justify-center transition-all border-cyan-400 bg-cyan-950/40 text-cyan-200">
             <span class="text-3xl mb-2">🍱</span>
@@ -107,16 +98,13 @@
           <span class="text-sm font-bold text-indigo-300 block">🚀 고속 데모 체험 모드</span>
           <span class="text-xs text-slate-500">2분 만에 임무가 성공하는 빠른 테스트 모드</span>
         </div>
-        <input type="checkbox" id="checkbox-demo" checked class="w-6 h-6 rounded accent-cyan-500 cursor-pointer" />
+        <input type="checkbox" id="checkbox-demo" class="w-6 h-6 rounded accent-cyan-500 cursor-pointer" />
       </div>
     </div>
 
-    <div class="mt-8 space-y-3">
+    <div class="mt-5 w-full">
       <button onclick="startGame()" class="w-full bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black py-4 rounded-2xl text-xl shadow-lg active:scale-95 transition-transform">
         🚀 우주 비행 시작!
-      </button>
-      <button onclick="changeScreen('intro')" class="w-full bg-slate-900 border border-slate-800 text-slate-400 font-bold py-2 rounded-xl text-sm">
-        이전으로
       </button>
     </div>
   </div>
@@ -174,21 +162,6 @@
       <!-- 좌측: 대형 행동 지시기 -->
       <div class="bg-slate-900 border-2 border-slate-800 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden shadow-inner min-h-[300px]">
         
-        <!-- 딴청 오버레이 -->
-        <div id="distraction-overlay" class="hidden absolute inset-0 bg-rose-950/95 backdrop-blur-md z-30 flex flex-col items-center justify-center p-6 text-center border-4 border-rose-600 rounded-3xl">
-          <div class="w-20 h-20 bg-rose-600/30 rounded-full flex items-center justify-center animate-bounce mb-4 border-2 border-rose-500">
-            <span class="text-5xl">⚠️</span>
-          </div>
-          <h3 class="text-3xl font-black text-rose-300 animate-pulse mb-2">우주 파편 감지!</h3>
-          <p class="text-rose-100 text-sm leading-relaxed mb-6">
-            <span class="pilot-name-text">연우</span> 대원님! 카메라를 똑바로 바라보고 <br />
-            우주선 조종간에 집중해주세요! 궤도가 흔들립니다!
-          </p>
-          <button onclick="clearDistractionAlert()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-8 py-3 rounded-2xl text-lg animate-pulse">
-            🚀 조종간 복귀 (알람 끄기)
-          </button>
-        </div>
-
         <!-- 타이틀 배지 -->
         <div class="flex justify-between items-center mb-4">
           <span class="bg-slate-800 px-3 py-1 rounded-full text-xs font-bold text-slate-300 border border-slate-700 uppercase tracking-widest">
@@ -276,24 +249,6 @@
       </div>
     </div>
 
-    <!-- 하단 통제소 패널 (부모 조작 영역) -->
-    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-      <h4 class="text-[10px] font-bold tracking-wider text-indigo-400 mb-2 uppercase flex items-center justify-between">
-        <span>🛠️ 부모님 지상 비행통제소 (아이가 딴청 피울 때 사용)</span>
-        <span class="text-slate-600 text-[8px]">본 영역은 부모님이 조작해주세요</span>
-      </h4>
-      <div class="grid grid-cols-3 gap-2">
-        <button onclick="triggerDistractionAlert()" class="bg-rose-950/40 border border-rose-800 hover:bg-rose-900/60 text-rose-300 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1">
-          🚨 딴청 경고 울리기
-        </button>
-        <button onclick="handleForceComplete()" class="bg-indigo-950/40 border border-indigo-800 hover:bg-indigo-900/60 text-indigo-300 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1">
-          ⏭️ 강제 다음 단계로
-        </button>
-        <button onclick="extendGameTime()" class="bg-emerald-950/40 border border-emerald-800 hover:bg-emerald-900/60 text-emerald-300 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1">
-          ⏳ 식사 시간 2분 연장
-        </button>
-      </div>
-    </div>
   </div>
 
   <!-- ================= SCREEN: VICTORY ================= -->
@@ -329,7 +284,7 @@
       </div>
     </div>
 
-    <button onclick="changeScreen('setup')" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-slate-950 font-black py-4 rounded-2xl text-xl shadow-lg active:scale-95 transition-transform">
+    <button onclick="changeScreen('intro')" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-slate-950 font-black py-4 rounded-2xl text-xl shadow-lg active:scale-95 transition-transform">
       다음 끼니 미션 준비 ➔
     </button>
   </div>
@@ -338,10 +293,10 @@
   <script>
     // --- State Management ---
     const state = {
-      screen: 'intro', // intro, setup, playing, victory
+      screen: 'intro', // intro, playing, victory
       pilotName: '연우',
       menuType: 'full', // full, single
-      isDemoMode: true,
+      isDemoMode: false,
       gameTime: 1200,
       maxGameTime: 1200,
       score: 0,
@@ -349,7 +304,6 @@
       phase: 'spoon', // spoon, chew, chopstick, scan
       phaseTimer: 15,
       chewProgress: 0,
-      isDistracted: false,
       scanningStatus: 'ready', // ready, scanning, success
       cameraActive: false
     };
@@ -707,7 +661,6 @@
     const changeScreen = (screenName) => {
       state.screen = screenName;
       document.getElementById('screen-intro').classList.add('hidden');
-      document.getElementById('screen-setup').classList.add('hidden');
       document.getElementById('screen-playing').classList.add('hidden');
       document.getElementById('screen-victory').classList.add('hidden');
 
@@ -754,7 +707,6 @@
       state.phase = 'spoon';
       state.phaseTimer = 15;
       state.chewProgress = 0;
-      state.isDistracted = false;
       state.scanningStatus = 'ready';
 
       updateScoreDisplay();
@@ -775,8 +727,6 @@
 
       // 2. Phase Game Countdown Timer (Individual loop phases)
       phaseTimerInterval = setInterval(() => {
-        if (state.isDistracted) return; // Pause timer if distracted
-
         if (state.phaseTimer <= 1) {
           handlePhaseTimeOut();
           return;
@@ -858,62 +808,68 @@
     };
 
     const renderSpoonMealSvg = () => `
-      <svg class="w-32 h-32" viewBox="0 0 160 160" role="img" aria-label="밥을 숟가락으로 뜨는 그림">
-        <defs>
-          <radialGradient id="riceGlow" cx="50%" cy="42%" r="55%">
-            <stop offset="0%" stop-color="#ffffff" />
-            <stop offset="100%" stop-color="#bae6fd" />
-          </radialGradient>
-        </defs>
-        <circle cx="80" cy="80" r="74" fill="#083344" stroke="#22d3ee" stroke-width="6" />
-        <ellipse cx="79" cy="104" rx="49" ry="22" fill="#0f172a" opacity="0.45" />
-        <path d="M38 82c8 30 75 30 84 0 3-10-7-18-42-18S35 72 38 82Z" fill="#38bdf8" />
-        <path d="M46 78c8 18 60 18 68 0-12-8-56-8-68 0Z" fill="#e0f2fe" />
-        <circle cx="63" cy="73" r="8" fill="url(#riceGlow)" />
-        <circle cx="80" cy="70" r="9" fill="url(#riceGlow)" />
-        <circle cx="97" cy="74" r="8" fill="url(#riceGlow)" />
-        <circle cx="73" cy="62" r="7" fill="url(#riceGlow)" />
-        <circle cx="90" cy="62" r="7" fill="url(#riceGlow)" />
-        <path d="M110 42c15 14 22 29 14 37-8 8-23 1-37-14" fill="none" stroke="#cbd5e1" stroke-width="9" stroke-linecap="round" />
-        <ellipse cx="89" cy="63" rx="23" ry="12" transform="rotate(42 89 63)" fill="#e2e8f0" stroke="#94a3b8" stroke-width="3" />
-        <circle cx="86" cy="60" r="6" fill="#f8fafc" />
-        <circle cx="95" cy="67" r="5" fill="#f8fafc" />
-        <path d="M42 108c14 14 62 17 78 0" fill="none" stroke="#67e8f9" stroke-width="5" stroke-linecap="round" />
+      <svg class="w-44 h-44 md:w-52 md:h-52" viewBox="0 0 220 220" role="img" aria-label="밥을 숟가락으로 뜨는 그림">
+        <circle cx="110" cy="110" r="100" fill="#062d3d" stroke="#22d3ee" stroke-width="7" />
+        <ellipse cx="110" cy="164" rx="72" ry="18" fill="#020617" opacity="0.35" />
+        <path d="M45 104c5 43 125 43 130 0 2-19-24-31-65-31s-67 12-65 31Z" fill="#0ea5e9" />
+        <path d="M54 96c10 24 102 24 112 0-14-18-98-18-112 0Z" fill="#eff6ff" />
+        <g fill="#ffffff" stroke="#bae6fd" stroke-width="2">
+          <circle cx="78" cy="85" r="10" /><circle cx="99" cy="78" r="11" /><circle cx="121" cy="80" r="10" />
+          <circle cx="143" cy="88" r="9" /><circle cx="88" cy="101" r="8" /><circle cx="113" cy="100" r="9" />
+          <circle cx="135" cy="101" r="8" />
+        </g>
+        <g fill="#fb923c">
+          <circle cx="70" cy="112" r="6" /><circle cx="151" cy="111" r="6" />
+        </g>
+        <g fill="#22c55e">
+          <ellipse cx="95" cy="111" rx="9" ry="5" transform="rotate(-22 95 111)" />
+          <ellipse cx="127" cy="111" rx="9" ry="5" transform="rotate(22 127 111)" />
+        </g>
+        <path d="M151 44c25 24 37 51 25 65-12 13-39 2-63-24" fill="none" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" />
+        <ellipse cx="112" cy="83" rx="36" ry="18" transform="rotate(42 112 83)" fill="#e2e8f0" stroke="#94a3b8" stroke-width="4" />
+        <g fill="#fff">
+          <circle cx="104" cy="76" r="8" /><circle cx="116" cy="86" r="7" /><circle cx="126" cy="92" r="6" />
+        </g>
+        <path d="M51 130c29 28 91 28 119 0" fill="none" stroke="#67e8f9" stroke-width="7" stroke-linecap="round" />
       </svg>
     `;
 
     const renderChewingKidSvg = () => `
-      <svg class="w-32 h-32" viewBox="0 0 160 160" role="img" aria-label="아이가 음식을 먹고 씹는 그림">
-        <circle cx="80" cy="80" r="74" fill="#052e16" stroke="#34d399" stroke-width="6" />
-        <path d="M46 121c7-22 22-34 34-34s27 12 34 34" fill="#22c55e" />
-        <circle cx="80" cy="68" r="34" fill="#facc15" />
-        <path d="M50 60c7-25 53-31 65 3-16-12-44-13-65-3Z" fill="#1e293b" />
-        <circle cx="68" cy="68" r="4" fill="#0f172a" />
-        <circle cx="92" cy="68" r="4" fill="#0f172a" />
-        <circle cx="58" cy="83" r="8" fill="#fb923c" opacity="0.6" />
-        <circle cx="102" cy="83" r="8" fill="#fb923c" opacity="0.6" />
-        <path d="M69 88c8 8 17 8 25 0" fill="none" stroke="#7f1d1d" stroke-width="5" stroke-linecap="round" />
-        <circle cx="112" cy="74" r="10" fill="#f97316" />
-        <path d="M119 72c10-7 20-8 25-3" fill="none" stroke="#fbbf24" stroke-width="6" stroke-linecap="round" />
-        <path d="M122 83c9 3 17 9 19 17" fill="none" stroke="#fbbf24" stroke-width="6" stroke-linecap="round" />
-        <text x="38" y="38" fill="#bbf7d0" font-size="18" font-weight="900">꼭꼭</text>
-        <text x="99" y="122" fill="#bbf7d0" font-size="15" font-weight="900">아작!</text>
+      <svg class="w-44 h-44 md:w-52 md:h-52" viewBox="0 0 220 220" role="img" aria-label="아이가 음식을 먹고 씹는 그림">
+        <circle cx="110" cy="110" r="100" fill="#052e16" stroke="#34d399" stroke-width="7" />
+        <path d="M61 177c9-39 31-58 49-58s40 19 49 58" fill="#22c55e" />
+        <circle cx="110" cy="91" r="48" fill="#fde68a" />
+        <path d="M63 81c12-40 78-46 96 2-24-15-65-16-96-2Z" fill="#1f2937" />
+        <path d="M83 88q8-8 16 0M121 88q8-8 16 0" fill="none" stroke="#111827" stroke-width="5" stroke-linecap="round" />
+        <circle cx="80" cy="111" r="11" fill="#fb923c" opacity="0.65" />
+        <circle cx="140" cy="111" r="11" fill="#fb923c" opacity="0.65" />
+        <path d="M94 116c10 11 22 11 32 0" fill="none" stroke="#7f1d1d" stroke-width="7" stroke-linecap="round" />
+        <path d="M56 142c28-8 48-5 63 9" fill="none" stroke="#fde68a" stroke-width="13" stroke-linecap="round" />
+        <circle cx="129" cy="149" r="14" fill="#f97316" stroke="#fed7aa" stroke-width="4" />
+        <path d="M139 145c19-10 36-10 46 0" fill="none" stroke="#fbbf24" stroke-width="8" stroke-linecap="round" />
+        <path d="M140 157c17 5 29 16 34 31" fill="none" stroke="#fbbf24" stroke-width="8" stroke-linecap="round" />
+        <g fill="#bbf7d0" font-weight="900">
+          <text x="38" y="48" font-size="25">꼭꼭</text>
+          <text x="139" y="60" font-size="21">냠!</text>
+          <text x="148" y="188" font-size="19">아작!</text>
+        </g>
       </svg>
     `;
 
     const renderOpenMouthKidSvg = () => `
-      <svg class="w-32 h-32" viewBox="0 0 160 160" role="img" aria-label="아이가 입을 벌리고 있는 그림">
-        <circle cx="80" cy="80" r="74" fill="#2e1065" stroke="#c084fc" stroke-width="6" />
-        <path d="M48 122c7-24 22-37 32-37s25 13 32 37" fill="#7c3aed" />
-        <circle cx="80" cy="66" r="34" fill="#fde68a" />
-        <path d="M49 57c10-25 55-28 65 2-17-10-43-11-65-2Z" fill="#312e81" />
-        <circle cx="67" cy="65" r="4" fill="#111827" />
-        <circle cx="93" cy="65" r="4" fill="#111827" />
-        <ellipse cx="80" cy="88" rx="15" ry="19" fill="#3f0f0f" />
-        <path d="M68 82c7 5 17 5 24 0" fill="none" stroke="#fff7ed" stroke-width="5" stroke-linecap="round" />
-        <path d="M61 101c12 9 26 9 38 0" fill="none" stroke="#f9a8d4" stroke-width="4" stroke-linecap="round" />
-        <path d="M37 83h18M105 83h18M80 28v15" stroke="#e9d5ff" stroke-width="6" stroke-linecap="round" />
-        <text x="57" y="145" fill="#f5d0fe" font-size="22" font-weight="900">아~</text>
+      <svg class="w-44 h-44 md:w-52 md:h-52" viewBox="0 0 220 220" role="img" aria-label="아이가 입을 벌리고 있는 그림">
+        <circle cx="110" cy="110" r="100" fill="#2e1065" stroke="#c084fc" stroke-width="7" />
+        <path d="M62 177c9-40 30-60 48-60s39 20 48 60" fill="#7c3aed" />
+        <circle cx="110" cy="89" r="50" fill="#fde68a" />
+        <path d="M63 79c14-42 78-45 96 0-29-16-65-16-96 0Z" fill="#312e81" />
+        <circle cx="90" cy="87" r="6" fill="#111827" />
+        <circle cx="130" cy="87" r="6" fill="#111827" />
+        <ellipse cx="110" cy="122" rx="24" ry="32" fill="#3f0f0f" />
+        <path d="M89 105c13 7 29 7 42 0" fill="none" stroke="#fff7ed" stroke-width="8" stroke-linecap="round" />
+        <path d="M88 145c14 10 30 10 44 0" fill="none" stroke="#f9a8d4" stroke-width="6" stroke-linecap="round" />
+        <path d="M49 113h27M144 113h27M110 30v25" stroke="#e9d5ff" stroke-width="8" stroke-linecap="round" />
+        <path d="M55 139c13 10 27 12 42 6M123 145c17 5 31 2 43-7" fill="none" stroke="#fde68a" stroke-width="8" stroke-linecap="round" />
+        <text x="78" y="198" fill="#f5d0fe" font-size="30" font-weight="900">아~</text>
       </svg>
     `;
 
@@ -993,25 +949,6 @@
         scanHint.innerText = '입 스캐너 준비 중...';
         scanHint.classList.remove('hidden');
       }
-    };
-
-    // --- Auxiliary Actions ---
-    const triggerDistractionAlert = () => {
-      state.isDistracted = true;
-      document.getElementById('distraction-overlay').classList.remove('hidden');
-      playSound('alert');
-    };
-
-    const clearDistractionAlert = () => {
-      state.isDistracted = false;
-      document.getElementById('distraction-overlay').classList.add('hidden');
-      playSound('success');
-    };
-
-    const extendGameTime = () => {
-      state.gameTime = Math.min(state.gameTime + 120, state.maxGameTime);
-      updateTimerProgressBar();
-      playSound('success');
     };
 
     const updateScoreDisplay = () => {
