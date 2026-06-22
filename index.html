@@ -37,6 +37,22 @@
     .point-pop {
       animation: point-pop 1.2s ease-out forwards;
     }
+    @keyframes chew-frame-a {
+      0%, 45% { opacity: 1; transform: scale(1); }
+      50%, 95% { opacity: 0; transform: scale(0.98); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes chew-frame-b {
+      0%, 45% { opacity: 0; transform: scale(1.02); }
+      50%, 95% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.02); }
+    }
+    .chew-frame-a {
+      animation: chew-frame-a 0.7s steps(1, end) infinite;
+    }
+    .chew-frame-b {
+      animation: chew-frame-b 0.7s steps(1, end) infinite;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-white font-sans min-h-screen overflow-x-hidden flex flex-col justify-between">
@@ -807,70 +823,30 @@
       completeScanSuccess({ nextPhase: 'spoon' });
     };
 
-    const renderSpoonMealSvg = () => `
-      <svg class="w-44 h-44 md:w-52 md:h-52" viewBox="0 0 220 220" role="img" aria-label="밥을 숟가락으로 뜨는 그림">
-        <circle cx="110" cy="110" r="100" fill="#062d3d" stroke="#22d3ee" stroke-width="7" />
-        <ellipse cx="110" cy="164" rx="72" ry="18" fill="#020617" opacity="0.35" />
-        <path d="M45 104c5 43 125 43 130 0 2-19-24-31-65-31s-67 12-65 31Z" fill="#0ea5e9" />
-        <path d="M54 96c10 24 102 24 112 0-14-18-98-18-112 0Z" fill="#eff6ff" />
-        <g fill="#ffffff" stroke="#bae6fd" stroke-width="2">
-          <circle cx="78" cy="85" r="10" /><circle cx="99" cy="78" r="11" /><circle cx="121" cy="80" r="10" />
-          <circle cx="143" cy="88" r="9" /><circle cx="88" cy="101" r="8" /><circle cx="113" cy="100" r="9" />
-          <circle cx="135" cy="101" r="8" />
-        </g>
-        <g fill="#fb923c">
-          <circle cx="70" cy="112" r="6" /><circle cx="151" cy="111" r="6" />
-        </g>
-        <g fill="#22c55e">
-          <ellipse cx="95" cy="111" rx="9" ry="5" transform="rotate(-22 95 111)" />
-          <ellipse cx="127" cy="111" rx="9" ry="5" transform="rotate(22 127 111)" />
-        </g>
-        <path d="M151 44c25 24 37 51 25 65-12 13-39 2-63-24" fill="none" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" />
-        <ellipse cx="112" cy="83" rx="36" ry="18" transform="rotate(42 112 83)" fill="#e2e8f0" stroke="#94a3b8" stroke-width="4" />
-        <g fill="#fff">
-          <circle cx="104" cy="76" r="8" /><circle cx="116" cy="86" r="7" /><circle cx="126" cy="92" r="6" />
-        </g>
-        <path d="M51 130c29 28 91 28 119 0" fill="none" stroke="#67e8f9" stroke-width="7" stroke-linecap="round" />
-      </svg>
+    const renderPhaseImage = (src, alt) => `
+      <img
+        src="${src}"
+        alt="${alt}"
+        class="w-44 h-44 md:w-52 md:h-52 object-contain drop-shadow-[0_0_24px_rgba(34,211,238,0.35)]"
+        draggable="false"
+      />
     `;
 
-    const renderChewingKidSvg = () => `
-      <svg class="w-44 h-44 md:w-52 md:h-52" viewBox="0 0 220 220" role="img" aria-label="아이가 음식을 먹고 씹는 그림">
-        <circle cx="110" cy="110" r="100" fill="#052e16" stroke="#34d399" stroke-width="7" />
-        <path d="M61 177c9-39 31-58 49-58s40 19 49 58" fill="#22c55e" />
-        <circle cx="110" cy="91" r="48" fill="#fde68a" />
-        <path d="M63 81c12-40 78-46 96 2-24-15-65-16-96-2Z" fill="#1f2937" />
-        <path d="M83 88q8-8 16 0M121 88q8-8 16 0" fill="none" stroke="#111827" stroke-width="5" stroke-linecap="round" />
-        <circle cx="80" cy="111" r="11" fill="#fb923c" opacity="0.65" />
-        <circle cx="140" cy="111" r="11" fill="#fb923c" opacity="0.65" />
-        <path d="M94 116c10 11 22 11 32 0" fill="none" stroke="#7f1d1d" stroke-width="7" stroke-linecap="round" />
-        <path d="M56 142c28-8 48-5 63 9" fill="none" stroke="#fde68a" stroke-width="13" stroke-linecap="round" />
-        <circle cx="129" cy="149" r="14" fill="#f97316" stroke="#fed7aa" stroke-width="4" />
-        <path d="M139 145c19-10 36-10 46 0" fill="none" stroke="#fbbf24" stroke-width="8" stroke-linecap="round" />
-        <path d="M140 157c17 5 29 16 34 31" fill="none" stroke="#fbbf24" stroke-width="8" stroke-linecap="round" />
-        <g fill="#bbf7d0" font-weight="900">
-          <text x="38" y="48" font-size="25">꼭꼭</text>
-          <text x="139" y="60" font-size="21">냠!</text>
-          <text x="148" y="188" font-size="19">아작!</text>
-        </g>
-      </svg>
-    `;
-
-    const renderOpenMouthKidSvg = () => `
-      <svg class="w-44 h-44 md:w-52 md:h-52" viewBox="0 0 220 220" role="img" aria-label="아이가 입을 벌리고 있는 그림">
-        <circle cx="110" cy="110" r="100" fill="#2e1065" stroke="#c084fc" stroke-width="7" />
-        <path d="M62 177c9-40 30-60 48-60s39 20 48 60" fill="#7c3aed" />
-        <circle cx="110" cy="89" r="50" fill="#fde68a" />
-        <path d="M63 79c14-42 78-45 96 0-29-16-65-16-96 0Z" fill="#312e81" />
-        <circle cx="90" cy="87" r="6" fill="#111827" />
-        <circle cx="130" cy="87" r="6" fill="#111827" />
-        <ellipse cx="110" cy="122" rx="24" ry="32" fill="#3f0f0f" />
-        <path d="M89 105c13 7 29 7 42 0" fill="none" stroke="#fff7ed" stroke-width="8" stroke-linecap="round" />
-        <path d="M88 145c14 10 30 10 44 0" fill="none" stroke="#f9a8d4" stroke-width="6" stroke-linecap="round" />
-        <path d="M49 113h27M144 113h27M110 30v25" stroke="#e9d5ff" stroke-width="8" stroke-linecap="round" />
-        <path d="M55 139c13 10 27 12 42 6M123 145c17 5 31 2 43-7" fill="none" stroke="#fde68a" stroke-width="8" stroke-linecap="round" />
-        <text x="78" y="198" fill="#f5d0fe" font-size="30" font-weight="900">아~</text>
-      </svg>
+    const renderChewingAnimation = () => `
+      <div class="relative w-44 h-44 md:w-52 md:h-52">
+        <img
+          src="eat.png"
+          alt="아이가 음식을 먹고 씹는 첫 번째 그림"
+          class="chew-frame-a absolute inset-0 w-full h-full object-contain drop-shadow-[0_0_24px_rgba(52,211,153,0.35)]"
+          draggable="false"
+        />
+        <img
+          src="eat2.png"
+          alt="아이가 음식을 먹고 씹는 두 번째 그림"
+          class="chew-frame-b absolute inset-0 w-full h-full object-contain drop-shadow-[0_0_24px_rgba(52,211,153,0.35)]"
+          draggable="false"
+        />
+      </div>
     `;
 
     // --- Dynamic Phase Rendering ---
@@ -890,7 +866,7 @@
       if (state.phase === 'spoon') {
         guide.innerHTML = `
           <div class="mb-4 animate-pulse">
-            ${renderSpoonMealSvg()}
+            ${renderPhaseImage('spoon.png', '밥을 숟가락으로 뜨는 그림')}
           </div>
           <h3 class="text-3xl font-black text-cyan-300 mb-2">숟가락 합체!</h3>
           <p class="text-slate-300 text-base leading-relaxed">
@@ -915,9 +891,7 @@
         const percent = (state.chewProgress / 30) * 100;
         guide.innerHTML = `
           <div class="relative mb-4">
-            <div class="animate-bounce">
-              ${renderChewingKidSvg()}
-            </div>
+            ${renderChewingAnimation()}
           </div>
           <h3 class="text-3xl font-black text-emerald-300 mb-2">꼭꼭꼭꼭! 아작아작!</h3>
           <p class="text-slate-300 text-base leading-relaxed mb-4">
@@ -935,7 +909,7 @@
       } else if (state.phase === 'scan') {
         guide.innerHTML = `
           <div class="mb-4 animate-pulse">
-            ${renderOpenMouthKidSvg()}
+            ${renderPhaseImage('mouth.png', '아이가 입을 벌리고 있는 그림')}
           </div>
           <h3 class="text-3xl font-black text-purple-300 mb-2">입속 우주스캔 가동!</h3>
           <p class="text-slate-300 text-sm leading-relaxed mb-4">
