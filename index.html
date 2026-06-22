@@ -28,9 +28,19 @@
         radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, transparent 70%),
         linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.8));
     }
+    @keyframes point-pop {
+      0% { transform: translate(-50%, 0) scale(0.7); opacity: 0; }
+      15% { transform: translate(-50%, -18px) scale(1.15); opacity: 1; }
+      75% { transform: translate(-50%, -78px) scale(1); opacity: 1; }
+      100% { transform: translate(-50%, -110px) scale(0.85); opacity: 0; }
+    }
+    .point-pop {
+      animation: point-pop 1.2s ease-out forwards;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-white font-sans min-h-screen overflow-x-hidden flex flex-col justify-between">
+  <div id="point-animation-layer" class="fixed inset-0 pointer-events-none z-[100] overflow-hidden"></div>
 
   <!-- ================= SCREEN: INTRO ================= -->
   <div id="screen-intro" class="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-lg mx-auto w-full">
@@ -442,6 +452,27 @@
       setScanSuccessVisible(false);
     };
 
+    const animatePointGain = (points) => {
+      const layer = document.getElementById('point-animation-layer');
+      const scoreDisplay = document.getElementById('score-display');
+      if (!layer || !scoreDisplay) return;
+
+      const rect = scoreDisplay.getBoundingClientRect();
+      const point = document.createElement('div');
+      point.className = 'point-pop absolute px-4 py-2 rounded-full bg-yellow-400 text-slate-950 font-black text-2xl shadow-[0_0_28px_rgba(250,204,21,0.8)] border-2 border-white';
+      point.style.left = `${rect.left + rect.width / 2}px`;
+      point.style.top = `${rect.top + rect.height / 2}px`;
+      point.textContent = `+${points}P`;
+
+      const sparkles = document.createElement('div');
+      sparkles.className = 'absolute -inset-4 text-center text-xl';
+      sparkles.textContent = '✨ ✨ ✨';
+      point.appendChild(sparkles);
+
+      layer.appendChild(point);
+      setTimeout(() => point.remove(), 1300);
+    };
+
     const updateMouthCheckStatus = (message, tone = 'scanning') => {
       const dot = document.getElementById('camera-status-dot');
       const text = document.getElementById('camera-status-text');
@@ -473,6 +504,7 @@
 
       state.score += points;
       updateScoreDisplay();
+      animatePointGain(points);
 
       setTimeout(() => {
         setScanSuccessVisible(false);
@@ -807,6 +839,7 @@
       playSound('success');
       state.score += 100;
       updateScoreDisplay();
+      animatePointGain(100);
 
       if (state.phase === 'spoon') {
         goToNextPhase('chew');
@@ -824,6 +857,66 @@
       completeScanSuccess({ nextPhase: 'spoon' });
     };
 
+    const renderSpoonMealSvg = () => `
+      <svg class="w-32 h-32" viewBox="0 0 160 160" role="img" aria-label="밥을 숟가락으로 뜨는 그림">
+        <defs>
+          <radialGradient id="riceGlow" cx="50%" cy="42%" r="55%">
+            <stop offset="0%" stop-color="#ffffff" />
+            <stop offset="100%" stop-color="#bae6fd" />
+          </radialGradient>
+        </defs>
+        <circle cx="80" cy="80" r="74" fill="#083344" stroke="#22d3ee" stroke-width="6" />
+        <ellipse cx="79" cy="104" rx="49" ry="22" fill="#0f172a" opacity="0.45" />
+        <path d="M38 82c8 30 75 30 84 0 3-10-7-18-42-18S35 72 38 82Z" fill="#38bdf8" />
+        <path d="M46 78c8 18 60 18 68 0-12-8-56-8-68 0Z" fill="#e0f2fe" />
+        <circle cx="63" cy="73" r="8" fill="url(#riceGlow)" />
+        <circle cx="80" cy="70" r="9" fill="url(#riceGlow)" />
+        <circle cx="97" cy="74" r="8" fill="url(#riceGlow)" />
+        <circle cx="73" cy="62" r="7" fill="url(#riceGlow)" />
+        <circle cx="90" cy="62" r="7" fill="url(#riceGlow)" />
+        <path d="M110 42c15 14 22 29 14 37-8 8-23 1-37-14" fill="none" stroke="#cbd5e1" stroke-width="9" stroke-linecap="round" />
+        <ellipse cx="89" cy="63" rx="23" ry="12" transform="rotate(42 89 63)" fill="#e2e8f0" stroke="#94a3b8" stroke-width="3" />
+        <circle cx="86" cy="60" r="6" fill="#f8fafc" />
+        <circle cx="95" cy="67" r="5" fill="#f8fafc" />
+        <path d="M42 108c14 14 62 17 78 0" fill="none" stroke="#67e8f9" stroke-width="5" stroke-linecap="round" />
+      </svg>
+    `;
+
+    const renderChewingKidSvg = () => `
+      <svg class="w-32 h-32" viewBox="0 0 160 160" role="img" aria-label="아이가 음식을 먹고 씹는 그림">
+        <circle cx="80" cy="80" r="74" fill="#052e16" stroke="#34d399" stroke-width="6" />
+        <path d="M46 121c7-22 22-34 34-34s27 12 34 34" fill="#22c55e" />
+        <circle cx="80" cy="68" r="34" fill="#facc15" />
+        <path d="M50 60c7-25 53-31 65 3-16-12-44-13-65-3Z" fill="#1e293b" />
+        <circle cx="68" cy="68" r="4" fill="#0f172a" />
+        <circle cx="92" cy="68" r="4" fill="#0f172a" />
+        <circle cx="58" cy="83" r="8" fill="#fb923c" opacity="0.6" />
+        <circle cx="102" cy="83" r="8" fill="#fb923c" opacity="0.6" />
+        <path d="M69 88c8 8 17 8 25 0" fill="none" stroke="#7f1d1d" stroke-width="5" stroke-linecap="round" />
+        <circle cx="112" cy="74" r="10" fill="#f97316" />
+        <path d="M119 72c10-7 20-8 25-3" fill="none" stroke="#fbbf24" stroke-width="6" stroke-linecap="round" />
+        <path d="M122 83c9 3 17 9 19 17" fill="none" stroke="#fbbf24" stroke-width="6" stroke-linecap="round" />
+        <text x="38" y="38" fill="#bbf7d0" font-size="18" font-weight="900">꼭꼭</text>
+        <text x="99" y="122" fill="#bbf7d0" font-size="15" font-weight="900">아작!</text>
+      </svg>
+    `;
+
+    const renderOpenMouthKidSvg = () => `
+      <svg class="w-32 h-32" viewBox="0 0 160 160" role="img" aria-label="아이가 입을 벌리고 있는 그림">
+        <circle cx="80" cy="80" r="74" fill="#2e1065" stroke="#c084fc" stroke-width="6" />
+        <path d="M48 122c7-24 22-37 32-37s25 13 32 37" fill="#7c3aed" />
+        <circle cx="80" cy="66" r="34" fill="#fde68a" />
+        <path d="M49 57c10-25 55-28 65 2-17-10-43-11-65-2Z" fill="#312e81" />
+        <circle cx="67" cy="65" r="4" fill="#111827" />
+        <circle cx="93" cy="65" r="4" fill="#111827" />
+        <ellipse cx="80" cy="88" rx="15" ry="19" fill="#3f0f0f" />
+        <path d="M68 82c7 5 17 5 24 0" fill="none" stroke="#fff7ed" stroke-width="5" stroke-linecap="round" />
+        <path d="M61 101c12 9 26 9 38 0" fill="none" stroke="#f9a8d4" stroke-width="4" stroke-linecap="round" />
+        <path d="M37 83h18M105 83h18M80 28v15" stroke="#e9d5ff" stroke-width="6" stroke-linecap="round" />
+        <text x="57" y="145" fill="#f5d0fe" font-size="22" font-weight="900">아~</text>
+      </svg>
+    `;
+
     // --- Dynamic Phase Rendering ---
     const renderPhaseUI = () => {
       const guide = document.getElementById('guide-content');
@@ -840,10 +933,8 @@
 
       if (state.phase === 'spoon') {
         guide.innerHTML = `
-          <div class="w-28 h-28 bg-cyan-500/10 rounded-full flex items-center justify-center border-4 border-cyan-400 animate-pulse mb-4">
-            <svg class="w-16 h-16 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
-            </svg>
+          <div class="mb-4 animate-pulse">
+            ${renderSpoonMealSvg()}
           </div>
           <h3 class="text-3xl font-black text-cyan-300 mb-2">숟가락 합체!</h3>
           <p class="text-slate-300 text-base leading-relaxed">
@@ -868,8 +959,8 @@
         const percent = (state.chewProgress / 30) * 100;
         guide.innerHTML = `
           <div class="relative mb-4">
-            <div class="w-28 h-28 bg-emerald-500/10 rounded-full flex items-center justify-center border-4 border-emerald-400 animate-bounce">
-              <span class="text-5xl relative">👾</span>
+            <div class="animate-bounce">
+              ${renderChewingKidSvg()}
             </div>
           </div>
           <h3 class="text-3xl font-black text-emerald-300 mb-2">꼭꼭꼭꼭! 아작아작!</h3>
@@ -887,13 +978,13 @@
         `;
       } else if (state.phase === 'scan') {
         guide.innerHTML = `
-          <div class="w-28 h-28 bg-purple-500/10 rounded-full flex items-center justify-center border-4 border-purple-400 animate-pulse mb-4">
-            <span class="text-5xl animate-spin-slow">📡</span>
+          <div class="mb-4 animate-pulse">
+            ${renderOpenMouthKidSvg()}
           </div>
           <h3 class="text-3xl font-black text-purple-300 mb-2">입속 우주스캔 가동!</h3>
           <p class="text-slate-300 text-sm leading-relaxed mb-4">
             에너지를 무사히 위(Stomach)로 전송했나요?<br />
-            카메라를 보며 <strong>아~</strong> 하고 완식 스캔 버튼을 누르세요!
+            카메라를 보며 <strong>아~</strong> 하고 입을 크게 보여주세요!
           </p>
         `;
         scanOverlay.classList.remove('hidden');
