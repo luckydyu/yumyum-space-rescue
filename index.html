@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>냠냠 우주 구조대 (Yum-Yum Space Rescue)</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <style>
+    @keyframes scan {
+      0%, 100% { top: 0%; }
+      50% { top: 100%; }
+    }
+    .animate-scan {
+      animation: scan 4s linear infinite;
+    }
+    .animate-spin-slow {
+      animation: spin 12s linear infinite;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .bg-radial-grid {
+      background-image: 
+        radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, transparent 70%),
+        linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.8));
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-white font-sans min-h-screen overflow-x-hidden flex flex-col justify-between">
+
+  <!-- ================= SCREEN: INTRO ================= -->
+  <div id="screen-intro" class="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-lg mx-auto w-full">
+    <div class="relative mb-8 mt-4 animate-bounce">
+      <svg class="w-32 h-32 text-indigo-400 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+      </svg>
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-5xl">🌌</div>
+    </div>
+    
+    <h1 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400 mb-2">
+      냠냠 우주 구조대
+    </h1>
+    <p class="text-indigo-200 text-sm tracking-widest uppercase mb-6">
+      Yum-Yum Space Rescue
+    </p>
+
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 mb-8 text-left w-full shadow-xl">
+      <h2 class="text-lg font-bold text-cyan-300 mb-3 flex items-center">
+        <span class="mr-2">🚀</span> <span class="pilot-name-text">연우</span> 대원님, 오늘의 임무!
+      </h2>
+      <p class="text-slate-300 text-sm leading-relaxed">
+        우주선 <span class="text-indigo-400 font-bold">냠냠호</span>의 에너지가 부족해 우주 한가운데 멈췄어요! <br />
+        지정된 도구로 음식을 넣고, <strong>꼭꼭 에너지</strong>를 생성해 20분 내에 무사히 <strong>달콤 행성</strong>에 도달하세요!
+      </p>
+    </div>
+
+    <button onclick="changeScreen('setup')" class="w-full bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-black py-4 px-8 rounded-2xl text-xl shadow-lg shadow-indigo-500/20 active:scale-95 transition-transform">
+      임무 준비하기 ➔
+    </button>
+  </div>
+
+  <!-- ================= SCREEN: SETUP ================= -->
+  <div id="screen-setup" class="hidden flex-1 flex flex-col justify-center p-6 max-w-md mx-auto w-full">
+    <h2 class="text-3xl font-black text-center text-cyan-400 mb-8">🛠️ 비행 준비 세팅</h2>
+    
+    <div class="space-y-6 bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl">
+      <!-- 대원 이름 입력 -->
+      <div>
+        <label class="block text-slate-400 text-xs font-bold uppercase mb-2">우주 대원 이름</label>
+        <input type="text" id="input-pilot-name" value="연우" maxLength="8" class="w-full bg-slate-800 border-2 border-indigo-500/30 rounded-xl px-4 py-3 text-lg font-bold text-white focus:outline-none focus:border-indigo-500" />
+      </div>
+
+      <!-- 메뉴 타입 선택 -->
+      <div>
+        <label class="block text-slate-400 text-xs font-bold uppercase mb-2">식사 타입 (에너지 종류)</label>
+        <div class="grid grid-cols-2 gap-3">
+          <button type="button" id="btn-menu-full" onclick="setMenuType('full')" class="p-4 rounded-xl border-2 flex flex-col items-center justify-center transition-all border-cyan-400 bg-cyan-950/40 text-cyan-200">
+            <span class="text-3xl mb-2">🍱</span>
+            <span class="font-bold text-sm">우주 정식</span>
+            <span class="text-xs text-slate-500 mt-1">밥 + 반찬 + 국</span>
+          </button>
+          <button type="button" id="btn-menu-single" onclick="setMenuType('single')" class="p-4 rounded-xl border-2 flex flex-col items-center justify-center transition-all border-slate-800 bg-slate-950 text-slate-400">
+            <span class="text-3xl mb-2">🍛</span>
+            <span class="font-bold text-sm">단일 에너지</span>
+            <span class="text-xs text-slate-500 mt-1">덮밥, 볶음밥 등 한그릇</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 빠른 데모 토글 -->
+      <div class="flex items-center justify-between p-3 bg-slate-950 rounded-xl border border-slate-800">
+        <div>
+          <span class="text-sm font-bold text-indigo-300 block">🚀 고속 데모 체험 모드</span>
+          <span class="text-xs text-slate-500">2분 만에 임무가 성공하는 빠른 테스트 모드</span>
+        </div>
+        <input type="checkbox" id="checkbox-demo" checked class="w-6 h-6 rounded accent-cyan-500 cursor-pointer" />
+      </div>
+    </div>
+
+    <div class="mt-8 space-y-3">
+      <button onclick="startGame()" class="w-full bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black py-4 rounded-2xl text-xl shadow-lg active:scale-95 transition-transform">
+        🚀 우주 비행 시작!
+      </button>
+      <button onclick="changeScreen('intro')" class="w-full bg-slate-900 border border-slate-800 text-slate-400 font-bold py-2 rounded-xl text-sm">
+        이전으로
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= SCREEN: PLAYING ================= -->
+  <div id="screen-playing" class="hidden flex-1 flex flex-col justify-between p-4 max-w-4xl mx-auto w-full gap-4">
+    
+    <!-- 상단: 우주 지도 & 타임 라인 프로그레스 -->
+    <div class="bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-2xl p-4 shadow-xl">
+      <div class="flex justify-between items-center mb-2">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🧑‍🚀</span>
+          <div>
+            <span id="playing-pilot-name" class="text-cyan-300 font-black text-sm">연우 우주 대원</span>
+            <span id="playing-mission-type" class="text-xs text-slate-400 ml-2">임무: 우주 정식 완식</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div id="timer-display" class="bg-slate-950/80 border border-slate-700 px-3 py-1 rounded-full text-indigo-300 font-mono font-bold flex items-center gap-1.5">
+            ⏱️ 20:00
+          </div>
+          <div id="score-display" class="bg-yellow-500/20 border border-yellow-500/50 text-yellow-300 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+            ⭐ 0 P
+          </div>
+          <button onclick="toggleMute()" id="btn-mute" class="text-slate-400 hover:text-white" title="소리 토글">🔊</button>
+        </div>
+      </div>
+
+      <!-- 실시간 우주선 이동 궤적 -->
+      <div class="relative h-6 bg-slate-950 rounded-full border border-slate-800 overflow-visible mt-4">
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900/10 via-transparent to-transparent"></div>
+        <div id="progress-bar" class="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 rounded-full transition-all duration-1000" style="width: 0%;"></div>
+        
+        <!-- 날아가는 우주선 마커 -->
+        <div id="ship-marker" class="absolute top-1/2 -translate-y-1/2 -ml-4 transition-all duration-1000" style="left: 0%;">
+          <div class="animate-pulse relative">
+            <span class="text-2xl drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] block -rotate-45">🚀</span>
+            <span class="absolute -bottom-1 left-0 right-0 h-1.5 bg-cyan-400 blur-sm animate-ping rounded-full"></span>
+          </div>
+        </div>
+
+        <div class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 flex items-center justify-center">
+          <span class="text-2xl animate-spin-slow">🪐</span>
+        </div>
+      </div>
+      <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
+        <span>지구 기지 출발</span>
+        <span class="text-cyan-400 font-bold">목적지: 달콤 행성 완식 착륙</span>
+      </div>
+    </div>
+
+    <!-- 중앙 영역: 대형 행동 지시 패널 & 카메라 뷰포트 (2단 레이아웃) -->
+    <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 my-2 min-h-0">
+      
+      <!-- 좌측: 대형 행동 지시기 -->
+      <div class="bg-slate-900 border-2 border-slate-800 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden shadow-inner min-h-[300px]">
+        
+        <!-- 딴청 오버레이 -->
+        <div id="distraction-overlay" class="hidden absolute inset-0 bg-rose-950/95 backdrop-blur-md z-30 flex flex-col items-center justify-center p-6 text-center border-4 border-rose-600 rounded-3xl">
+          <div class="w-20 h-20 bg-rose-600/30 rounded-full flex items-center justify-center animate-bounce mb-4 border-2 border-rose-500">
+            <span class="text-5xl">⚠️</span>
+          </div>
+          <h3 class="text-3xl font-black text-rose-300 animate-pulse mb-2">우주 파편 감지!</h3>
+          <p class="text-rose-100 text-sm leading-relaxed mb-6">
+            <span class="pilot-name-text">연우</span> 대원님! 카메라를 똑바로 바라보고 <br />
+            우주선 조종간에 집중해주세요! 궤도가 흔들립니다!
+          </p>
+          <button onclick="clearDistractionAlert()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-8 py-3 rounded-2xl text-lg animate-pulse">
+            🚀 조종간 복귀 (알람 끄기)
+          </button>
+        </div>
+
+        <!-- 타이틀 배지 -->
+        <div class="flex justify-between items-center mb-4">
+          <span class="bg-slate-800 px-3 py-1 rounded-full text-xs font-bold text-slate-300 border border-slate-700 uppercase tracking-widest">
+            단계 액션 가이드
+          </span>
+          <span id="phase-timer-display" class="text-cyan-400 font-mono font-black text-xl animate-pulse">
+            남은 시간: 15초
+          </span>
+        </div>
+
+        <!-- 가이드 내용 (JS에서 동적으로 변경됨) -->
+        <div id="guide-content" class="flex-1 flex flex-col items-center justify-center text-center py-4">
+          <!-- JS에서 콘텐츠 삽입 -->
+        </div>
+
+        <div class="flex justify-between items-center border-t border-slate-800 pt-4 gap-2">
+          <span class="text-[10px] text-slate-500">다음 단계까지 카운트다운 중</span>
+          <button onclick="handleForceComplete()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1 transition-all">
+            👌 완료했어요!
+          </button>
+        </div>
+      </div>
+
+      <!-- 우측: 카메라 뷰포트 & 센서 모니터링 -->
+      <div class="bg-slate-900 border-2 border-slate-800 rounded-3xl p-4 flex flex-col justify-between shadow-lg relative overflow-hidden min-h-[300px]">
+        
+        <!-- 스캔 전용 오버레이 필터 -->
+        <div id="scan-radar-overlay" class="hidden absolute inset-0 z-10 pointer-events-none border-4 border-purple-500 m-2 rounded-2xl overflow-hidden">
+          <div class="absolute top-0 left-0 right-0 h-1 bg-purple-400 shadow-[0_0_15px_rgba(192,132,252,0.8)] animate-scan"></div>
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border-2 border-dashed border-purple-400 rounded-full animate-spin-slow opacity-60 flex items-center justify-center">
+            <div class="w-40 h-40 border border-purple-400 rounded-full"></div>
+          </div>
+          <div class="absolute bottom-4 left-0 right-0 text-center">
+            <span class="bg-purple-950/90 border border-purple-400 text-purple-300 text-[10px] font-mono px-3 py-1 rounded-full uppercase tracking-wider animate-pulse">
+              구강 내 음식 잔류량 정밀 스캔 가동 중
+            </span>
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-bold text-slate-400 flex items-center gap-1.5">
+            <span id="camera-status-dot" class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+            <span id="camera-status-text">스캐너 시뮬레이터 활성</span>
+          </span>
+          <span class="bg-slate-950 px-2 py-0.5 rounded text-[10px] font-mono text-indigo-400 border border-indigo-900">
+            MONITOR_01
+          </span>
+        </div>
+
+        <!-- 카메라 프레임 영역 -->
+        <div class="flex-1 bg-slate-950 rounded-2xl overflow-hidden relative border border-slate-800 flex items-center justify-center">
+          <video id="webcam-video" autoplay playsinline muted class="hidden w-full h-full object-cover scale-x-[-1]"></video>
+          
+          <div id="camera-fallback" class="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-radial-grid">
+            <span class="text-4xl mb-2">🛰️</span>
+            <span class="text-slate-400 text-xs font-bold">카메라를 연결하면 더 실감나요!</span>
+            <p class="text-[10px] text-slate-600 max-w-[200px] mt-1">식기 거치대에 태블릿을 똑바로 놓으면 AI 우주선 모니터가 완성됩니다.</p>
+          </div>
+
+          <!-- 스캔 모드 애니메이션 상태 -->
+          <div id="scan-loading-state" class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center z-20">
+            <div class="relative">
+              <div class="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+              <span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-lg">🧬</span>
+            </div>
+            <p class="text-purple-300 font-black text-lg mt-4 animate-pulse">입속 청결 스캔 분석 중...</p>
+          </div>
+
+          <div id="scan-success-state" class="hidden absolute inset-0 bg-emerald-950/90 backdrop-blur-sm flex flex-col items-center justify-center z-20">
+            <span class="text-6xl animate-bounce">🟢</span>
+            <p class="text-emerald-300 font-black text-2xl mt-4">완벽한 스캔 성공!</p>
+            <p class="text-emerald-100 text-xs mt-1">에너지가 정상 흡수되었습니다 (+150P)</p>
+          </div>
+        </div>
+
+        <!-- 하단 액션 버튼 구역 -->
+        <div class="mt-3 flex gap-2">
+          <button id="btn-scan-start" onclick="handleStartScanning()" class="hidden w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black py-3 rounded-xl shadow-lg transition-transform active:scale-95 text-sm">
+            🔍 아~ 입속 스캔 시작! (우주 레이더 전송)
+          </button>
+          <div id="scan-hint-text" class="w-full bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-center text-xs text-slate-500 font-semibold flex items-center justify-center gap-1">
+            🛸 밥을 다 먹고 삼키면 스캔 시스템이 가동됩니다.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 하단 통제소 패널 (부모 조작 영역) -->
+    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+      <h4 class="text-[10px] font-bold tracking-wider text-indigo-400 mb-2 uppercase flex items-center justify-between">
+        <span>🛠️ 부모님 지상 비행통제소 (아이가 딴청 피울 때 사용)</span>
+        <span class="text-slate-600 text-[8px]">본 영역은 부모님이 조작해주세요</span>
+      </h4>
+      <div class="grid grid-cols-3 gap-2">
+        <button onclick="triggerDistractionAlert()" class="bg-rose-950/40 border border-rose-800 hover:bg-rose-900/60 text-rose-300 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1">
+          🚨 딴청 경고 울리기
+        </button>
+        <button onclick="handleForceComplete()" class="bg-indigo-950/40 border border-indigo-800 hover:bg-indigo-900/60 text-indigo-300 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1">
+          ⏭️ 강제 다음 단계로
+        </button>
+        <button onclick="extendGameTime()" class="bg-emerald-950/40 border border-emerald-800 hover:bg-emerald-900/60 text-emerald-300 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1">
+          ⏳ 식사 시간 2분 연장
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SCREEN: VICTORY ================= -->
+  <div id="screen-victory" class="hidden flex-1 flex flex-col items-center justify-center p-6 text-center max-w-lg mx-auto w-full">
+    <div class="w-32 h-32 bg-yellow-400/10 rounded-full flex items-center justify-center border-4 border-yellow-400 animate-bounce mb-6">
+      <span class="text-7xl">🏆</span>
+    </div>
+    
+    <h2 class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-500 mb-2">
+      지구 최강 완식 정복!
+    </h2>
+    <p class="text-yellow-200 text-sm uppercase tracking-widest mb-6">
+      Planet Candy Successfully Conquered!
+    </p>
+
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl w-full mb-8 space-y-4">
+      <p class="text-slate-300 leading-relaxed text-sm">
+        <strong class="text-cyan-300 text-lg"><span class="pilot-name-text">연우</span> 우주 대원님</strong>은 <br />
+        시간 안에 우주선 에너지를 가득 채워 <br />
+        <strong>달콤 행성 무사 착륙</strong>에 완벽하게 성공하였습니다! 🎉
+      </p>
+
+      <div class="border-t border-slate-800 pt-4 flex justify-around">
+        <div>
+          <span class="text-slate-500 text-[10px] block uppercase">최종 획득 스타</span>
+          <span id="victory-score" class="text-2xl font-black text-yellow-400 font-mono">0 P</span>
+        </div>
+        <div class="border-r border-slate-800"></div>
+        <div>
+          <span class="text-slate-500 text-[10px] block uppercase">식사 소요 시간</span>
+          <span id="victory-duration" class="text-2xl font-black text-cyan-400 font-mono">0:00</span>
+        </div>
+      </div>
+    </div>
+
+    <button onclick="changeScreen('setup')" class="w-full bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-slate-950 font-black py-4 rounded-2xl text-xl shadow-lg active:scale-95 transition-transform">
+      다음 끼니 미션 준비 ➔
+    </button>
+  </div>
+
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
+  <script>
+    // --- State Management ---
+    const state = {
+      screen: 'intro', // intro, setup, playing, victory
+      pilotName: '연우',
+      menuType: 'full', // full, single
+      isDemoMode: true,
+      gameTime: 1200,
+      maxGameTime: 1200,
+      score: 0,
+      isMuted: false,
+      phase: 'spoon', // spoon, chew, chopstick, scan
+      phaseTimer: 15,
+      chewProgress: 0,
+      isDistracted: false,
+      scanningStatus: 'ready', // ready, scanning, success
+      cameraActive: false
+    };
+
+    let mainTimerInterval = null;
+    let phaseTimerInterval = null;
+    let videoStream = null;
+
+    // --- Audio Generator ---
+    const playSound = (type) => {
+      if (state.isMuted) return;
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        
+        if (type === 'beep') {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.frequency.setValueAtTime(600, ctx.currentTime);
+          gain.gain.setValueAtTime(0.05, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.1);
+        } else if (type === 'success') {
+          const notes = [523.25, 659.25, 783.99, 1046.50];
+          notes.forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.1);
+            gain.gain.setValueAtTime(0.08, ctx.currentTime + idx * 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.1 + 0.2);
+            osc.start(ctx.currentTime + idx * 0.1);
+            osc.stop(ctx.currentTime + idx * 0.1 + 0.2);
+          });
+        } else if (type === 'alert') {
+          const duration = 1.0;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(300, ctx.currentTime);
+          osc.frequency.linearRampToValueAtTime(600, ctx.currentTime + 0.3);
+          osc.frequency.linearRampToValueAtTime(300, ctx.currentTime + 0.6);
+          osc.frequency.linearRampToValueAtTime(600, ctx.currentTime + 0.9);
+          gain.gain.setValueAtTime(0.1, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+          osc.start();
+          osc.stop(ctx.currentTime + duration);
+        } else if (type === 'victory') {
+          const melody = [523.25, 523.25, 523.25, 523.25, 659.25, 587.33, 659.25, 783.99, 1046.50];
+          const times = [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.05, 1.35];
+          melody.forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, ctx.currentTime + times[idx]);
+            gain.gain.setValueAtTime(0.1, ctx.currentTime + times[idx]);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + times[idx] + (idx === 8 ? 0.8 : 0.2));
+            osc.start(ctx.currentTime + times[idx]);
+            osc.stop(ctx.currentTime + times[idx] + (idx === 8 ? 0.8 : 0.2));
+          });
+        }
+      } catch (e) {
+        console.error("Audio Synthesis Error: ", e);
+      }
+    };
+
+    // --- Camera Handling ---
+    const startCamera = async () => {
+      const video = document.getElementById('webcam-video');
+      const fallback = document.getElementById('camera-fallback');
+      const dot = document.getElementById('camera-status-dot');
+      const text = document.getElementById('camera-status-text');
+
+      try {
+        if (videoStream) {
+          videoStream.getTracks().forEach(track => track.stop());
+        }
+        videoStream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: 'user', width: 400, height: 300 } 
+        });
+        video.srcObject = videoStream;
+        video.classList.remove('hidden');
+        fallback.classList.add('hidden');
+        
+        dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping";
+        text.innerText = "실시간 우주 스캐너 ON";
+        state.cameraActive = true;
+      } catch (err) {
+        console.warn("Camera fallback applied.", err);
+        video.classList.add('hidden');
+        fallback.classList.remove('hidden');
+        dot.className = "w-2.5 h-2.5 rounded-full bg-amber-500";
+        text.innerText = "스캐너 시뮬레이터 활성";
+        state.cameraActive = false;
+      }
+    };
+
+    const stopCamera = () => {
+      if (videoStream) {
+        videoStream.getTracks().forEach(track => track.stop());
+        videoStream = null;
+      }
+      state.cameraActive = false;
+    };
+
+    // --- Screen Transitions ---
+    const changeScreen = (screenName) => {
+      state.screen = screenName;
+      document.getElementById('screen-intro').classList.add('hidden');
+      document.getElementById('screen-setup').classList.add('hidden');
+      document.getElementById('screen-playing').classList.add('hidden');
+      document.getElementById('screen-victory').classList.add('hidden');
+
+      document.getElementById(`screen-${screenName}`).classList.remove('hidden');
+
+      if (screenName !== 'playing') {
+        stopCamera();
+        clearInterval(mainTimerInterval);
+        clearInterval(phaseTimerInterval);
+      }
+    };
+
+    const setMenuType = (type) => {
+      state.menuType = type;
+      if (type === 'full') {
+        document.getElementById('btn-menu-full').className = "p-4 rounded-xl border-2 flex flex-col items-center justify-center transition-all border-cyan-400 bg-cyan-950/40 text-cyan-200";
+        document.getElementById('btn-menu-single').className = "p-4 rounded-xl border-2 flex flex-col items-center justify-center transition-all border-slate-800 bg-slate-950 text-slate-400";
+      } else {
+        document.getElementById('btn-menu-full').className = "p-4 rounded-xl border-2 flex flex-col items-center justify-center transition-all border-slate-800 bg-slate-950 text-slate-400";
+        document.getElementById('btn-menu-single').className = "p-4 rounded-xl border-2 flex flex-col items-center justify-center transition-all border-cyan-400 bg-cyan-950/40 text-cyan-200";
+      }
+    };
+
+    const toggleMute = () => {
+      state.isMuted = !state.isMuted;
+      document.getElementById('btn-mute').innerText = state.isMuted ? '🔇' : '🔊';
+    };
+
+    // --- Gameplay Loop ---
+    const startGame = () => {
+      const nameInput = document.getElementById('input-pilot-name').value;
+      state.pilotName = nameInput || '연우';
+      state.isDemoMode = document.getElementById('checkbox-demo').checked;
+      
+      // Update Name text elements
+      document.querySelectorAll('.pilot-name-text').forEach(el => el.innerText = state.pilotName);
+      document.getElementById('playing-pilot-name').innerText = `${state.pilotName} 우주 대원`;
+      document.getElementById('playing-mission-type').innerText = state.menuType === 'full' ? '임무: 우주 정식 완식' : '단일 에너지 흡수';
+
+      const totalDuration = state.isDemoMode ? 120 : 1200;
+      state.gameTime = totalDuration;
+      state.maxGameTime = totalDuration;
+      state.score = 0;
+      state.phase = 'spoon';
+      state.phaseTimer = 15;
+      state.chewProgress = 0;
+      state.isDistracted = false;
+      state.scanningStatus = 'ready';
+
+      updateScoreDisplay();
+      goToNextPhase('spoon');
+      changeScreen('playing');
+      startCamera();
+      playSound('success');
+
+      // 1. Main Game Countdown Timer (Total 20m / 2m)
+      mainTimerInterval = setInterval(() => {
+        if (state.gameTime <= 1) {
+          endGameWithVictory();
+          return;
+        }
+        state.gameTime--;
+        updateTimerProgressBar();
+      }, 1000);
+
+      // 2. Phase Game Countdown Timer (Individual loop phases)
+      phaseTimerInterval = setInterval(() => {
+        if (state.isDistracted) return; // Pause timer if distracted
+
+        if (state.phaseTimer <= 1) {
+          handlePhaseTimeOut();
+          return;
+        }
+
+        state.phaseTimer--;
+        document.getElementById('phase-timer-display').innerText = `남은 시간: ${state.phaseTimer}초`;
+
+        // Metronome effect on chew phase
+        if (state.phase === 'chew') {
+          if (state.phaseTimer % 2 === 0) {
+            playSound('beep');
+            state.chewProgress = Math.min(30, state.chewProgress + 2);
+            renderPhaseUI();
+          }
+        }
+      }, 1000);
+    };
+
+    const handlePhaseTimeOut = () => {
+      playSound('success');
+      if (state.phase === 'spoon') {
+        goToNextPhase('chew');
+      } else if (state.phase === 'chopstick') {
+        goToNextPhase('chew');
+      } else if (state.phase === 'chew') {
+        goToNextPhase('scan');
+      } else if (state.phase === 'scan') {
+        goToNextPhase(state.menuType === 'full' ? 'chopstick' : 'spoon');
+      }
+    };
+
+    const goToNextPhase = (nextPhase) => {
+      state.phase = nextPhase;
+      state.scanningStatus = 'ready';
+      
+      if (nextPhase === 'spoon') {
+        state.phaseTimer = 15;
+      } else if (nextPhase === 'chopstick') {
+        state.phaseTimer = 15;
+      } else if (nextPhase === 'chew') {
+        state.phaseTimer = 25;
+        state.chewProgress = 0;
+      } else if (nextPhase === 'scan') {
+        state.phaseTimer = 20;
+      }
+
+      renderPhaseUI();
+    };
+
+    const handleForceComplete = () => {
+      playSound('success');
+      state.score += 100;
+      updateScoreDisplay();
+
+      if (state.phase === 'spoon') {
+        goToNextPhase('chew');
+      } else if (state.phase === 'chopstick') {
+        goToNextPhase('chew');
+      } else if (state.phase === 'chew') {
+        goToNextPhase('scan');
+      } else if (state.phase === 'scan') {
+        goToNextPhase(state.menuType === 'full' ? 'spoon' : 'spoon');
+      }
+    };
+
+    const handleStartScanning = () => {
+      state.scanningStatus = 'scanning';
+      document.getElementById('scan-loading-state').classList.remove('hidden');
+      playSound('beep');
+
+      setTimeout(() => {
+        state.scanningStatus = 'success';
+        document.getElementById('scan-loading-state').classList.add('hidden');
+        document.getElementById('scan-success-state').classList.remove('hidden');
+        playSound('success');
+        
+        state.score += 150;
+        updateScoreDisplay();
+
+        setTimeout(() => {
+          document.getElementById('scan-success-state').classList.add('hidden');
+          // Move to spoon after scan
+          goToNextPhase('spoon');
+        }, 1500);
+      }, 2500);
+    };
+
+    // --- Dynamic Phase Rendering ---
+    const renderPhaseUI = () => {
+      const guide = document.getElementById('guide-content');
+      const scanOverlay = document.getElementById('scan-radar-overlay');
+      const btnScan = document.getElementById('btn-scan-start');
+      const scanHint = document.getElementById('scan-hint-text');
+
+      document.getElementById('phase-timer-display').innerText = `남은 시간: ${state.phaseTimer}초`;
+
+      // Reset Scanning UI Elements
+      scanOverlay.classList.add('hidden');
+      btnScan.classList.add('hidden');
+      scanHint.classList.remove('hidden');
+
+      if (state.phase === 'spoon') {
+        guide.innerHTML = `
+          <div class="w-28 h-28 bg-cyan-500/10 rounded-full flex items-center justify-center border-4 border-cyan-400 animate-pulse mb-4">
+            <svg class="w-16 h-16 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+            </svg>
+          </div>
+          <h3 class="text-3xl font-black text-cyan-300 mb-2">숟가락 합체!</h3>
+          <p class="text-slate-300 text-base leading-relaxed">
+            지금은 <strong>맛있는 밥과 국</strong>을 <br />
+            한 숟가락 크게 떠서 입에 쏙 채우는 시간!
+          </p>
+        `;
+      } else if (state.phase === 'chopstick') {
+        guide.innerHTML = `
+          <div class="w-28 h-28 bg-indigo-500/10 rounded-full flex items-center justify-center border-4 border-indigo-400 animate-pulse mb-4">
+            <svg class="w-16 h-16 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 3l14 18M10 3l10 14" />
+            </svg>
+          </div>
+          <h3 class="text-3xl font-black text-indigo-300 mb-2">젓가락 레이더 발사!</h3>
+          <p class="text-slate-300 text-base leading-relaxed">
+            이번엔 맛있는 <strong>우주 반찬</strong>을 집으세요! <br />
+            골고루 영양소를 흡수해야 부스터가 켜집니다!
+          </p>
+        `;
+      } else if (state.phase === 'chew') {
+        const percent = (state.chewProgress / 30) * 100;
+        guide.innerHTML = `
+          <div class="relative mb-4">
+            <div class="w-28 h-28 bg-emerald-500/10 rounded-full flex items-center justify-center border-4 border-emerald-400 animate-bounce">
+              <span class="text-5xl relative">👾</span>
+            </div>
+          </div>
+          <h3 class="text-3xl font-black text-emerald-300 mb-2">꼭꼭꼭꼭! 아작아작!</h3>
+          <p class="text-slate-300 text-base leading-relaxed mb-4">
+            음식을 삼키기 전, 이빨 분쇄기를 가동해요!<br />
+            대장 몬스터와 함께 <strong>30번 꼭꼭</strong> 씹기!
+          </p>
+          
+          <div class="w-full bg-slate-950 h-5 rounded-full border border-slate-800 overflow-hidden relative">
+            <div class="bg-emerald-500 h-full transition-all duration-300" style="width: ${percent}%"></div>
+            <span class="absolute inset-0 text-[10px] font-mono font-bold flex items-center justify-center text-white">
+              에너지 가공 상태: ${state.chewProgress} / 30 씹기 완료
+            </span>
+          </div>
+        `;
+      } else if (state.phase === 'scan') {
+        guide.innerHTML = `
+          <div class="w-28 h-28 bg-purple-500/10 rounded-full flex items-center justify-center border-4 border-purple-400 animate-pulse mb-4">
+            <span class="text-5xl animate-spin-slow">📡</span>
+          </div>
+          <h3 class="text-3xl font-black text-purple-300 mb-2">입속 우주스캔 가동!</h3>
+          <p class="text-slate-300 text-sm leading-relaxed mb-4">
+            에너지를 무사히 위(Stomach)로 전송했나요?<br />
+            카메라를 보며 <strong>아~</strong> 하고 완식 스캔 버튼을 누르세요!
+          </p>
+        `;
+        scanOverlay.classList.remove('hidden');
+        btnScan.classList.remove('hidden');
+        scanHint.classList.add('hidden');
+      }
+    };
+
+    // --- Auxiliary Actions ---
+    const triggerDistractionAlert = () => {
+      state.isDistracted = true;
+      document.getElementById('distraction-overlay').classList.remove('hidden');
+      playSound('alert');
+    };
+
+    const clearDistractionAlert = () => {
+      state.isDistracted = false;
+      document.getElementById('distraction-overlay').classList.add('hidden');
+      playSound('success');
+    };
+
+    const extendGameTime = () => {
+      state.gameTime = Math.min(state.gameTime + 120, state.maxGameTime);
+      updateTimerProgressBar();
+      playSound('success');
+    };
+
+    const updateScoreDisplay = () => {
+      document.getElementById('score-display').innerText = `⭐ ${state.score} P`;
+    };
+
+    const updateTimerProgressBar = () => {
+      const minutes = Math.floor(state.gameTime / 60);
+      const seconds = state.gameTime % 60;
+      document.getElementById('timer-display').innerText = `⏱️ ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+      const progress = ((state.maxGameTime - state.gameTime) / state.maxGameTime) * 100;
+      document.getElementById('progress-bar').style.width = `${progress}%`;
+      document.getElementById('ship-marker').style.left = `${progress}%`;
+    };
+
+    const endGameWithVictory = () => {
+      changeScreen('victory');
+      playSound('victory');
+      document.getElementById('victory-score').innerText = `${state.score} P`;
+      
+      const takenTime = state.maxGameTime - state.gameTime;
+      const m = Math.floor(takenTime / 60);
+      const s = takenTime % 60;
+      document.getElementById('victory-duration').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+    };
+
+    // --- Onload Check ---
+    window.onload = () => {
+      // Setup initial visual representation
+      updateTimerProgressBar();
+    };
+  </script>
+</body>
+</html>
