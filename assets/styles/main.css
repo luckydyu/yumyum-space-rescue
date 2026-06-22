@@ -1,0 +1,44 @@
+@keyframes scan {
+      0%, 100% { top: 0%; }
+      50% { top: 100%; }
+    }
+    .animate-scan {
+      animation: scan 4s linear infinite;
+    }
+    .animate-spin-slow {
+      animation: spin 12s linear infinite;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .bg-radial-grid {
+      background-image: 
+        radial-gradient(circle at center, rgba(99, 102, 241, 0.15) 0%, transparent 70%),
+        linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.8));
+    }
+    @keyframes point-pop {
+      0% { transform: translate(-50%, 0) scale(0.7); opacity: 0; }
+      15% { transform: translate(-50%, -18px) scale(1.15); opacity: 1; }
+      75% { transform: translate(-50%, -78px) scale(1); opacity: 1; }
+      100% { transform: translate(-50%, -110px) scale(0.85); opacity: 0; }
+    }
+    .point-pop {
+      animation: point-pop 1.2s ease-out forwards;
+    }
+    @keyframes chew-frame-a {
+      0%, 45% { opacity: 1; transform: scale(1); }
+      50%, 95% { opacity: 0; transform: scale(0.98); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes chew-frame-b {
+      0%, 45% { opacity: 0; transform: scale(1.02); }
+      50%, 95% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.02); }
+    }
+    .chew-frame-a {
+      animation: chew-frame-a 0.7s steps(1, end) infinite;
+    }
+    .chew-frame-b {
+      animation: chew-frame-b 0.7s steps(1, end) infinite;
+    }
