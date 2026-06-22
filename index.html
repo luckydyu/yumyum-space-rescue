@@ -347,6 +347,19 @@
     let mainTimerInterval = null;
     let phaseTimerInterval = null;
     let videoStream = null;
+    let mouthCheckFrameId = null;
+    let faceLandmarker = null;
+    let faceLandmarkerPromise = null;
+    let mouthOpenStartedAt = null;
+    let lastMouthDetectionAt = 0;
+
+    const MOUTH_OPEN_HOLD_MS = 1200;
+    const MOUTH_DETECTION_INTERVAL_MS = 160;
+    const MOUTH_OPEN_RATIO_THRESHOLD = 0.2;
+    const JAW_OPEN_THRESHOLD = 0.35;
+    const MEDIAPIPE_TASKS_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/vision_bundle.mjs';
+    const MEDIAPIPE_WASM_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm';
+    const FACE_LANDMARKER_MODEL_URL = 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task';
 
     // --- Audio Generator ---
     const playSound = (type) => {
@@ -415,6 +428,209 @@
       }
     };
 
+    // --- Scan Flow Helpers ---
+    const setScanLoading = (isLoading) => {
+      document.getElementById('scan-loading-state').classList.toggle('hidden', !isLoading);
+    };
+
+    const setScanSuccessVisible = (isVisible) => {
+      document.getElementById('scan-success-state').classList.toggle('hidden', !isVisible);
+    };
+
+    const resetScanFeedback = () => {
+      setScanLoading(false);
+      setScanSuccessVisible(false);
+    };
+
+    const updateMouthCheckStatus = (message, tone = 'scanning') => {
+      const dot = document.getElementById('camera-status-dot');
+      const text = document.getElementById('camera-status-text');
+      const hint = document.getElementById('scan-hint-text');
+      if (!dot || !text) return;
+
+      const toneClass = tone === 'ok'
+        ? 'bg-emerald-500 animate-ping'
+        : tone === 'warn'
+          ? 'bg-amber-500'
+          : 'bg-purple-500 animate-pulse';
+
+      dot.className = 'w-2.5 h-2.5 rounded-full ' + toneClass;
+      text.innerText = message;
+      if (hint && state.phase === 'scan') {
+        hint.innerText = message;
+      }
+    };
+
+    const completeScanSuccess = ({ points = 150, nextPhase = 'spoon' } = {}) => {
+      if (state.scanningStatus === 'success') return;
+
+      state.scanningStatus = 'success';
+      stopMouthCheck();
+      setScanLoading(false);
+      setScanSuccessVisible(true);
+      updateMouthCheckStatus('입 벌림 확인 완료!', 'ok');
+      playSound('success');
+
+      state.score += points;
+      updateScoreDisplay();
+
+      setTimeout(() => {
+        setScanSuccessVisible(false);
+        goToNextPhase(nextPhase);
+      }, 1500);
+    };
+
+    const getFaceLandmarker = async () => {
+      if (faceLandmarker) return faceLandmarker;
+      if (faceLandmarkerPromise) return faceLandmarkerPromise;
+
+      faceLandmarkerPromise = (async () => {
+        const { FaceLandmarker, FilesetResolver } = await import(MEDIAPIPE_TASKS_URL);
+        const vision = await FilesetResolver.forVisionTasks(MEDIAPIPE_WASM_URL);
+
+        const createLandmarker = (delegate) => FaceLandmarker.createFromOptions(vision, {
+          baseOptions: {
+            modelAssetPath: FACE_LANDMARKER_MODEL_URL,
+            delegate
+          },
+          runningMode: 'VIDEO',
+          numFaces: 1,
+          outputFaceBlendshapes: true,
+          minFaceDetectionConfidence: 0.5,
+          minFacePresenceConfidence: 0.5,
+          minTrackingConfidence: 0.5
+        });
+
+        try {
+          faceLandmarker = await createLandmarker('GPU');
+        } catch (gpuError) {
+          console.warn('MediaPipe GPU delegate failed. Falling back to CPU.', gpuError);
+          faceLandmarker = await createLandmarker('CPU');
+        }
+
+        return faceLandmarker;
+      })();
+
+      return faceLandmarkerPromise;
+    };
+
+    const distance2d = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+
+    const getBlendshapeScore = (result, categoryName) => {
+      const categories = result.faceBlendshapes?.[0]?.categories || [];
+      return categories.find(category => category.categoryName === categoryName)?.score || 0;
+    };
+
+    const getMouthOpenReading = (result) => {
+      const landmarks = result.faceLandmarks?.[0];
+      if (!landmarks) return null;
+
+      const upperInnerLip = landmarks[13];
+      const lowerInnerLip = landmarks[14];
+      const leftMouthCorner = landmarks[61];
+      const rightMouthCorner = landmarks[291];
+      if (!upperInnerLip || !lowerInnerLip || !leftMouthCorner || !rightMouthCorner) return null;
+
+      const mouthHeight = distance2d(upperInnerLip, lowerInnerLip);
+      const mouthWidth = Math.max(distance2d(leftMouthCorner, rightMouthCorner), 0.001);
+      const mouthOpenRatio = mouthHeight / mouthWidth;
+      const jawOpen = getBlendshapeScore(result, 'jawOpen');
+      const normalizedRatio = Math.min(1, mouthOpenRatio / 0.38);
+      const score = Math.max(jawOpen, normalizedRatio);
+
+      return {
+        score,
+        mouthOpenRatio,
+        jawOpen,
+        isOpen: mouthOpenRatio >= MOUTH_OPEN_RATIO_THRESHOLD || jawOpen >= JAW_OPEN_THRESHOLD
+      };
+    };
+
+    const runMouthCheckLoop = () => {
+      const video = document.getElementById('webcam-video');
+
+      const tick = () => {
+        if (state.phase !== 'scan' || state.scanningStatus !== 'scanning') return;
+
+        const now = performance.now();
+        mouthCheckFrameId = requestAnimationFrame(tick);
+
+        if (!state.cameraActive || !video || video.readyState < 2) {
+          mouthOpenStartedAt = null;
+          updateMouthCheckStatus('카메라를 준비하는 중...', 'warn');
+          return;
+        }
+
+        if (now - lastMouthDetectionAt < MOUTH_DETECTION_INTERVAL_MS) return;
+        lastMouthDetectionAt = now;
+
+        let result;
+        try {
+          result = faceLandmarker.detectForVideo(video, now);
+        } catch (err) {
+          console.warn('Mouth check frame failed.', err);
+          mouthOpenStartedAt = null;
+          updateMouthCheckStatus('입 스캐너가 잠시 흔들렸어요', 'warn');
+          return;
+        }
+
+        const reading = getMouthOpenReading(result);
+        if (!reading) {
+          mouthOpenStartedAt = null;
+          updateMouthCheckStatus('얼굴을 카메라 가운데에 보여주세요', 'warn');
+          return;
+        }
+
+        if (!reading.isOpen) {
+          mouthOpenStartedAt = null;
+          updateMouthCheckStatus('입을 크게 아- 하고 보여주세요', 'scanning');
+          return;
+        }
+
+        if (!mouthOpenStartedAt) mouthOpenStartedAt = now;
+        const heldMs = now - mouthOpenStartedAt;
+        const progress = Math.min(100, Math.round((heldMs / MOUTH_OPEN_HOLD_MS) * 100));
+        updateMouthCheckStatus(`좋아요! 그대로 ${progress}%`, 'ok');
+
+        if (heldMs >= MOUTH_OPEN_HOLD_MS) {
+          completeScanSuccess({ nextPhase: 'spoon' });
+        }
+      };
+
+      tick();
+    };
+
+    const startMouthCheck = async () => {
+      stopMouthCheck();
+      if (state.phase !== 'scan') return;
+
+      state.scanningStatus = 'scanning';
+      mouthOpenStartedAt = null;
+      lastMouthDetectionAt = 0;
+      setScanLoading(true);
+      updateMouthCheckStatus('입 스캐너 준비 중...', 'scanning');
+
+      try {
+        await getFaceLandmarker();
+        if (state.phase !== 'scan' || state.scanningStatus !== 'scanning') return;
+        setScanLoading(false);
+        updateMouthCheckStatus('입을 크게 아- 하고 보여주세요', 'scanning');
+        runMouthCheckLoop();
+      } catch (err) {
+        console.warn('Mouth checker could not start.', err);
+        setScanLoading(false);
+        updateMouthCheckStatus('AI 스캐너 준비 실패 - 수동 완료를 눌러주세요', 'warn');
+      }
+    };
+
+    const stopMouthCheck = () => {
+      if (mouthCheckFrameId) {
+        cancelAnimationFrame(mouthCheckFrameId);
+        mouthCheckFrameId = null;
+      }
+      mouthOpenStartedAt = null;
+    };
+
     // --- Camera Handling ---
     const startCamera = async () => {
       const video = document.getElementById('webcam-video');
@@ -452,6 +668,7 @@
         videoStream = null;
       }
       state.cameraActive = false;
+      stopMouthCheck();
     };
 
     // --- Screen Transitions ---
@@ -556,13 +773,17 @@
       } else if (state.phase === 'chew') {
         goToNextPhase('scan');
       } else if (state.phase === 'scan') {
-        goToNextPhase(state.menuType === 'full' ? 'chopstick' : 'spoon');
+        state.phaseTimer = 10;
+        document.getElementById('phase-timer-display').innerText = `스캔 대기: ${state.phaseTimer}초`;
+        updateMouthCheckStatus('입을 보여주면 자동으로 넘어가요', 'scanning');
       }
     };
 
     const goToNextPhase = (nextPhase) => {
       state.phase = nextPhase;
       state.scanningStatus = 'ready';
+      stopMouthCheck();
+      resetScanFeedback();
       
       if (nextPhase === 'spoon') {
         state.phaseTimer = 15;
@@ -576,6 +797,10 @@
       }
 
       renderPhaseUI();
+
+      if (nextPhase === 'scan') {
+        startMouthCheck();
+      }
     };
 
     const handleForceComplete = () => {
@@ -595,25 +820,8 @@
     };
 
     const handleStartScanning = () => {
-      state.scanningStatus = 'scanning';
-      document.getElementById('scan-loading-state').classList.remove('hidden');
-      playSound('beep');
-
-      setTimeout(() => {
-        state.scanningStatus = 'success';
-        document.getElementById('scan-loading-state').classList.add('hidden');
-        document.getElementById('scan-success-state').classList.remove('hidden');
-        playSound('success');
-        
-        state.score += 150;
-        updateScoreDisplay();
-
-        setTimeout(() => {
-          document.getElementById('scan-success-state').classList.add('hidden');
-          // Move to spoon after scan
-          goToNextPhase('spoon');
-        }, 1500);
-      }, 2500);
+      if (state.phase !== 'scan' || state.scanningStatus === 'success') return;
+      completeScanSuccess({ nextPhase: 'spoon' });
     };
 
     // --- Dynamic Phase Rendering ---
@@ -689,8 +897,10 @@
           </p>
         `;
         scanOverlay.classList.remove('hidden');
+        btnScan.innerText = '👌 인식이 안 되면 수동 완료';
         btnScan.classList.remove('hidden');
-        scanHint.classList.add('hidden');
+        scanHint.innerText = '입 스캐너 준비 중...';
+        scanHint.classList.remove('hidden');
       }
     };
 
